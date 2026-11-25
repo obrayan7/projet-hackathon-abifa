@@ -1,0 +1,81 @@
+// Test de bout en bout à lancer sur un serveur démarré (npm run dev) avec une base migrée et seedée :  npm run smoke
+// Parcourt le scénario complet : inscription, IA, défi, livrable, validation par l'admin, matching, paiement idempotent.
+import 'dotenv/config';
+import crypto from 'node:crypto';
+const BASE = process.env.BASE || `http://localhost:${process.env.PORT || 4000}`;
+let fails = 0;
+const ok = (c, m) => { console.log((c ? '  ✓ ' : '  ✗ ') + m); if (!c) fails++; };
+const client = () => { let cookie = '', token = '';
+  return { setToken: (t) => (token = t),
+    async call(method, path, body, raw) {
+      const headers = {}; if (cookie) headers.cookie = cookie; if (token) headers.authorization = 'Bearer ' + token;
+      if (body && !raw) headers['content-type'] = 'application/json'; if (raw) Object.assign(headers, raw.headers);
+      const r = await fetch(BASE + '/api' + path, { method, headers, body: raw ? raw.body : body ? JSON.stringify(body) : undefined });
+      const sc = r.headers.getSetCookie?.() || []; if (sc.length) cookie = sc.map((c) => c.split(';')[0]).join('; ');
+      let j = {}; try { j = await r.json(); } catch {} return { status: r.status, ...j }; } }; };
+const y = client(), c = client(), a = client(), rnd = crypto.randomBytes(4).toString('hex');
+console.log('API :', BASE);
+console.log('1. Santé');
+ok((await y.call('GET', '/health')).success, 'le serveur répond');
+console.log('2. Entreprise : inscription et mission');
+const co = await c.call('POST', '/auth/register', { name: 'Atelier ' + rnd, email: `co-${rnd}@test.bj`, password: 'motdepasse1', role: 'COMPANY' });
+ok(co.status === 201, 'inscription entreprise');
+const job = await c.call('POST', '/jobs', { title: 'Affiches pour un événement', description: 'Dix affiches pour annoncer notre événement.', skills: ['Design graphique'], budgetMin: 30000, budgetMax: 45000, deadline: '5 jours', mode: 'À distance', subtasks: ['Maquette'], subtasksConfirmed: false });
+ok(job.status === 400, 'décomposition IA non validée : publication refusée');
+const job2 = await c.call('POST', '/jobs', { title: 'Affiches pour un événement', description: 'Dix affiches pour annoncer notre événement.', skills: ['Design graphique'], budgetMin: 30000, budgetMax: 45000, deadline: '5 jours', mode: 'À distance' });
+ok(job2.status === 201, 'mission créée (statut ' + job2.data?.status + ' : en revue tant que l\'entreprise n\'est pas vérifiée)');
+console.log('3. Administration (séparée)');
+const al = await a.call('POST', '/admin/auth/login', { email: process.env.ADMIN_EMAIL, password: process.env.ADMIN_PASSWORD });
+ok(al.success, 'connexion admin (ADMIN_EMAIL / ADMIN_PASSWORD du .env)'); if (!al.success) { console.log('Arrêt : sans admin, la suite est impossible.'); process.exit(1); }
+a.setToken(al.data.token);
+ok((await y.call('POST', '/admin/auth/login', { email: `co-${rnd}@test.bj`, password: 'motdepasse1' })).status === 401, 'un compte entreprise ne peut pas se connecter à l\'administration');
+const cos = await a.call('GET', '/admin/companies?q=' + encodeURIComponent('Atelier ' + rnd));
+await a.call('PATCH', `/admin/companies/${cos.data.items[0].id}/verification`, { status: 'VERIFIED', reason: 'Vérification effectuée' });
+await a.call('PATCH', `/admin/jobs/${job2.data.id}/status`, { status: 'PUBLISHED', reason: 'Mission conforme' });
+console.log('4. Jeune : présentation, IA, défi');
+const yr = await y.call('POST', '/auth/register', { name: 'Awa ' + rnd, email: `y-${rnd}@test.bj`, password: 'motdepasse1', role: 'YOUTH' });
+ok(yr.status === 201, 'inscription jeune');
+ok((await y.call('GET', '/admin/stats')).status === 401, 'un jeune ne peut pas lire les statistiques admin');
+const ov0 = await y.call('GET', '/youth/overview');
+ok(ov0.data.skills.length === 0 && ov0.data.challenges.length === 0, 'premier accès : profil vide');
+const ai = await y.call('POST', '/ai/skills/discover', { text: 'Je conçois des affiches et des flyers avec Canva depuis 2 ans pour des concerts de mon quartier.' });
+ok(ai.success && ai.data.skills.length > 0, 'analyse IA' + (ai.data?.fallback ? ' (réponse de secours : AI_PROVIDER non configuré)' : ''));
+const cf = await y.call('POST', '/youth/skills/confirm', { names: [ai.data.skills[0].name] });
+ok(cf.success && cf.data.skills[0].status === 'DECLARED', 'compétence enregistrée comme DÉCLARÉE');
+const ch = cf.data.challenges[0]; ok(!!ch, 'défi généré à partir de la compétence');
+console.log('5. Livrable et validation');
+ok((await y.call('POST', '/submissions', undefined, (() => { const fd = new FormData(); fd.append('challengeId', ch.id); fd.append('kind', 'LINK'); fd.append('url', 'http://pas-https.bj'); return { body: fd, headers: {} }; })())).status === 400, 'lien non https refusé');
+const fd = new FormData(); fd.append('challengeId', ch.id); fd.append('kind', 'LINK'); fd.append('url', 'https://exemple.bj/mon-affiche'); fd.append('description', 'Mon affiche');
+const sb = await y.call('POST', '/submissions', undefined, { body: fd, headers: {} });
+ok(sb.status === 201 && sb.data.status === 'PENDING', 'livrable envoyé, en attente');
+ok((await y.call('GET', '/youth/overview')).data.skills[0].status === 'DEMONSTRATED', 'compétence DÉMONTRÉE');
+const list = await a.call('GET', '/admin/submissions?status=PENDING');
+const mine = list.data.items.find((s) => s.id === sb.data.id); ok(!!mine, 'l\'admin voit le livrable');
+ok((await a.call('PATCH', `/admin/submissions/${sb.data.id}/review`, { decision: 'REVISION', comment: '' })).status === 400, 'révision sans commentaire refusée');
+ok((await a.call('PATCH', `/admin/submissions/${sb.data.id}/review`, { decision: 'VALIDATED', comment: 'Bon travail' })).success, 'livrable validé par l\'admin');
+ok((await a.call('PATCH', `/admin/submissions/${sb.data.id}/review`, { decision: 'VALIDATED', comment: '' })).status === 409, 'un livrable déjà traité ne se revalide pas');
+const ov = await y.call('GET', '/youth/overview');
+ok(ov.data.skills[0].status === 'VALIDATED', 'compétence VALIDÉE (Skill Passport)');
+console.log('6. Matching et plan gratuit / PRO');
+ok(ov.data.recommendations.total >= 1 && ov.data.recommendations.shown.length >= 1, 'recommandations réelles : ' + ov.data.recommendations.shown.length + '/' + ov.data.recommendations.total + ' affichées en gratuit');
+const jid = ov.data.recommendations.shown[0].jobId;
+ok((await y.call('POST', `/jobs/${jid}/applications`, { message: 'Bonjour' })).status === 201, 'candidature');
+const tl = await c.call('GET', `/talents?jobId=${job2.data.id}`);
+ok(tl.success && tl.data.length >= 1, 'l\'entreprise voit les talents classés par le serveur');
+console.log('7. Paiement PRO');
+const sec = process.env.PAYMENT_WEBHOOK_SECRET;
+const co2 = await y.call('POST', '/subscriptions/checkout', { acceptTerms: true });
+ok(co2.status === 201 && co2.data.amount === 1450, 'commande de 1 450 XOF créée');
+ok((await y.call('GET', '/subscriptions/me')).data.plan === 'FREE', 'PRO non actif avant confirmation serveur');
+const rawBad = JSON.stringify({ eventId: 'x', reference: co2.data.reference, amount: 1450, currency: 'XOF', status: 'SUCCESS' });
+ok((await y.call('POST', '/payments/webhook/sandbox', undefined, { body: rawBad, headers: { 'x-signature': 'faux', 'content-type': 'application/json' } })).status === 401, 'webhook à signature invalide refusé');
+if (process.env.NODE_ENV !== 'production' && process.env.PAYMENT_PROVIDER === 'sandbox') {
+  ok((await y.call('POST', '/payments/sandbox/confirm', { reference: co2.data.reference })).success, 'confirmation serveur (sandbox)');
+  const s1 = (await y.call('GET', '/subscriptions/me')).data; ok(s1.plan === 'PRO', 'PRO actif après confirmation');
+  const raw = JSON.stringify({ eventId: 'sbx-' + co2.data.reference, reference: co2.data.reference, amount: 1450, currency: 'XOF', status: 'SUCCESS' });
+  const rep = await y.call('POST', '/payments/webhook/sandbox', undefined, { body: raw, headers: { 'x-signature': crypto.createHmac('sha256', sec).update(raw).digest('hex'), 'content-type': 'application/json' } });
+  ok(rep.success, 'webhook rejoué accepté sans erreur');
+  ok((await y.call('GET', '/subscriptions/me')).data.endsAt === s1.endsAt, 'webhook rejoué : date de fin inchangée (une seule activation)');
+}
+console.log(fails ? `\n${fails} vérification(s) en échec.` : '\nTout est conforme.');
+process.exit(fails ? 1 : 0);

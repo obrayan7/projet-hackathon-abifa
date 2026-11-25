@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkillUp IA – Prouvez ce que vous savez faire</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body class="bg-white">
+<header class="sticky top-0 z-30 bg-[var(--bg)] border-b border-[var(--line)]"><i id="prog" class="absolute bottom-0 left-0 h-[3px] grad" style="width:0"></i>
+  <nav class="max-w-6xl mx-auto flex items-center justify-between px-4 py-3" aria-label="Navigation principale">
+    <a href="index.html" class="bg-white rounded-xl px-2 py-1 inline-block"><img src="assets/images/logo.png" alt="SkillUp IA" class="h-9"></a>
+    <ul class="hidden md:flex gap-7 font-semibold text-sm">
+      <li><a href="#parcours" class="hover:text-[var(--violet)]">Fonctionnement</a></li>
+      <li><a href="#preuves" class="hover:text-[var(--violet)]">Preuves</a></li>
+      <li><a href="#tarifs" class="hover:text-[var(--violet)]">Tarifs</a></li>
+      <li><a href="#faq" class="hover:text-[var(--violet)]">FAQ</a></li>
+    </ul>
+    <div class="flex items-center gap-2">
+      <a href="login.html" class="btn btn-o !py-2 text-sm">Connexion</a>
+      <a href="register.html" class="btn btn-p !py-2 text-sm hidden sm:inline-flex">Créer mon compte</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+<section id="hero" class="relative overflow-hidden" style="background:linear-gradient(100deg,rgba(11,11,59,.94) 30%,rgba(75,18,245,.5)),url(assets/images/hero.jpg) center/cover">
+  <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-6 items-center px-4 py-12 md:py-20">
+    <div id="htxt">
+      <h1 class="rv text-4xl md:text-5xl font-extrabold leading-[1.1] text-white">Développez vos compétences, prouvez votre talent, progressez.</h1>
+      <p class="rv mt-5 text-lg max-w-md text-white/90" style="--d:.15s">SkillUp IA vous permet de réaliser des défis pratiques, de rassembler vos preuves dans un Skill Passport et d’accéder à de vraies missions.</p>
+      <div class="rv mt-7 flex flex-wrap gap-3" style="--d:.3s">
+        <a href="register.html" class="btn btn-p">Commencer gratuitement</a>
+        <a href="#parcours" class="btn btn-o">Voir le parcours</a>
+      </div>
+      <p class="rv mt-4 text-sm text-white/80" style="--d:.45s">Gratuit pour démarrer. PRO facultatif à 1 450 FCFA/mois.</p>
+    </div>
+
+    <div class="scene" id="scene" aria-hidden="true">
+      <div class="stack" id="stack">
+        <div class="layer glow"></div>
+        <div class="layer pcard">
+          <div class="flex items-center gap-3">
+            <div class="h-14 w-14 rounded-full grad grid place-items-center text-white font-extrabold text-xl">JD</div>
+            <div><p class="font-extrabold text-[var(--navy)]">Votre nom</p><p class="text-sm">Votre métier · votre ville</p></div>
+          </div>
+          <p class="mt-4 text-sm font-bold">Compétences</p>
+          <div class="mt-2 space-y-2.5 text-sm">
+            <div><div class="flex justify-between"><span>JavaScript</span><span class="badge b-val">Validé</span></div><div class="bar mt-1"><i style="width:85%"></i></div></div>
+            <div><div class="flex justify-between"><span>React.js</span><span class="badge b-demo">Démontré</span></div><div class="bar mt-1"><i style="width:75%"></i></div></div>
+            <div><div class="flex justify-between"><span>PostgreSQL</span><span class="badge b-decl">Déclaré</span></div><div class="bar mt-1"><i style="width:55%"></i></div></div>
+          </div>
+        </div>
+        <div class="layer float" style="left:0;top:6%;transform:translateZ(90px)">Défi réussi</div>
+        <div class="layer float" style="right:0;top:34%;transform:translateZ(120px);animation-delay:-2s">Preuve validée</div>
+        <div class="layer float" style="left:6%;bottom:8%;transform:translateZ(70px);animation-delay:-3.5s">Mission recommandée</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="border-y border-[var(--line)] overflow-hidden py-4" aria-hidden="true"><div class="marq"><span>Électricité</span><span>Design graphique</span><span>Développement web</span><span>Couture</span><span>Marketing digital</span><span>Vente</span><span>Comptabilité</span><span>Photographie</span><span>Montage vidéo</span><span>Mécanique</span><span>Électricité</span><span>Design graphique</span><span>Développement web</span><span>Couture</span><span>Marketing digital</span><span>Vente</span><span>Comptabilité</span><span>Photographie</span><span>Montage vidéo</span><span>Mécanique</span></div></div>
+<section id="statement" class="max-w-4xl mx-auto px-4 py-28"><p id="words" class="text-3xl md:text-5xl font-extrabold leading-tight text-[var(--navy)]">Votre CV dit ce que vous prétendez. Votre Skill Passport montre ce que vous savez faire.</p></section>
+<section id="journey" class="relative bg-[#0B0B3B]" style="height:480vh"><div class="sticky top-0 h-screen overflow-hidden text-white" role="img" aria-label="Animation : une compétence déclarée est démontrée, validée, puis mène à des missions">
+<p id="jbig" aria-hidden="true" class="absolute inset-x-0 top-[30%] text-center font-extrabold leading-none select-none" style="font-size:clamp(3rem,15vw,12rem);color:transparent;-webkit-text-stroke:2px rgba(255,255,255,.14)">DÉCLAREZ</p>
+<div id="st" class="absolute inset-0" style="perspective:1100px"><i id="mast" class="absolute bg-[#8E6BFF]"></i><i id="boom" class="absolute bg-[#8E6BFF] rounded"></i><i id="cab" class="absolute bg-white/70"></i><i class="absolute inset-x-0 bg-white/25" style="top:82%;height:2px"></i>
+<div id="stat" class="cbox absolute" style="filter:hue-rotate(40deg) brightness(.65)"><b>Design</b></div>
+<div id="box" class="cbox absolute left-0 top-0"><b>JavaScript</b><span id="bb" class="badge b-decl">Déclaré</span></div>
+<div id="card" class="absolute left-0 top-0 rounded-2xl bg-white p-3 shadow-2xl" style="opacity:0;color:#1B1B4B"><p class="text-xs font-bold" style="color:#4B12F5">SKILL PASSPORT</p><p class="font-extrabold">Votre nom</p><p class="text-sm">JavaScript</p><span class="badge b-val">Validé</span></div>
+<div class="job"><b>Site vitrine</b>Atelier Wax · 87 %</div><div class="job"><b>Refonte paiement</b>PayLite · 82 %</div><div class="job"><b>Tableau de bord</b>AgroPlus · 80 %</div></div>
+<div id="jcap" class="absolute inset-x-0 px-6 text-center" style="top:86%"><h3 id="jt" class="text-xl md:text-3xl font-extrabold"></h3><p id="jp" class="text-sm md:text-base" style="color:#D8D4FF"></p></div></div></section>
+
+<section id="parcours" class="max-w-6xl mx-auto px-4 py-16">
+  <h2 class="rv text-3xl font-extrabold text-[var(--navy)]">Un parcours en quatre étapes</h2>
+  <ol class="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-5" style="perspective:1000px">
+    <li class="rv card tilt" style="--d:0.12s"><span class="grad text-white rounded-full h-9 w-9 grid place-items-center font-bold">1</span><h3 class="mt-3 font-bold">Créez votre compte</h3><p class="text-sm mt-1">Décrivez vos savoir-faire, l’IA propose des compétences que vous confirmez.</p></li>
+    <li class="rv card tilt" style="--d:0.24s"><span class="grad text-white rounded-full h-9 w-9 grid place-items-center font-bold">2</span><h3 class="mt-3 font-bold">Relevez des défis</h3><p class="text-sm mt-1">Réalisez des exercices pratiques et déposez votre livrable.</p></li>
+    <li class="rv card tilt" style="--d:0.36s"><span class="grad text-white rounded-full h-9 w-9 grid place-items-center font-bold">3</span><h3 class="mt-3 font-bold">Obtenez votre Skill Passport</h3><p class="text-sm mt-1">Vos preuves et évaluations réunies dans un profil partageable.</p></li>
+    <li class="rv card tilt" style="--d:0.48s"><span class="grad text-white rounded-full h-9 w-9 grid place-items-center font-bold">4</span><h3 class="mt-3 font-bold">Accédez aux missions</h3><p class="text-sm mt-1">Recevez des recommandations expliquées et postulez.</p></li>
+  </ol>
+</section>
+
+<section id="metiers" class="max-w-6xl mx-auto px-4 py-16 grid md:grid-cols-2 gap-10 items-center">
+  <div class="relative h-[440px]" style="perspective:1200px">
+    <figure class="p3d absolute left-0 top-0 w-[56%]" style="--r:-16deg" data-r="-16"><img src="assets/images/electricienne.jpg" alt="Électricienne mesurant un tableau électrique avec un multimètre" loading="lazy"></figure>
+    <figure class="p3d absolute right-0 bottom-0 w-[60%]" style="--r:14deg" data-r="14"><img src="assets/images/bureau.jpg" alt="Jeune femme travaillant sur son ordinateur portable" loading="lazy"></figure>
+    <span class="float absolute" style="left:2%;bottom:14%">Électricité · Démontré</span>
+    <span class="float absolute" style="right:4%;top:6%;animation-delay:-2s">Marketing digital · Validé</span>
+  </div>
+  <div><h2 class="text-3xl font-extrabold text-[var(--navy)]">Tous les métiers, une seule preuve</h2>
+  <p class="mt-4 max-w-md">Électricité, design, développement, vente : si vous savez le faire, vous pouvez le prouver. Chaque défi réussi s’ajoute à votre Skill Passport.</p>
+  <a href="register.html" class="btn btn-p mt-6">Montrer mes compétences</a></div>
+</section>
+
+<section id="preuves" data-wipe class="bg-[#0B0B3B] text-white">
+  <div class="max-w-6xl mx-auto px-4 py-16 grid md:grid-cols-2 gap-10 items-center">
+    <div>
+      <h2 class="text-3xl font-extrabold">Trois niveaux de confiance, jamais mélangés</h2>
+      <p class="mt-4 text-[#D8D4FF] max-w-md">Une compétence affirmée n’a pas le même poids qu’une compétence prouvée. Les recruteurs voient toujours la différence.</p>
+    </div>
+    <ul class="space-y-3">
+      <li class="rv rounded-2xl bg-white/10 p-4" style="--d:0.12s"><span class="badge b-decl">Déclaré</span> <p class="mt-1 text-sm">Vous l’affirmez, l’IA vous aide à le formuler.</p></li>
+      <li class="rv rounded-2xl bg-white/10 p-4" style="--d:0.24s"><span class="badge b-demo">Démontré</span> <p class="mt-1 text-sm">Un défi réalisé et évalué par critères le confirme.</p></li>
+      <li class="rv rounded-2xl bg-white/10 p-4" style="--d:0.36s"><span class="badge b-val">Validé</span> <p class="mt-1 text-sm">Une revue humaine a confirmé la preuve.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section id="tarifs" class="max-w-6xl mx-auto px-4 py-16">
+  <h2 class="text-3xl font-extrabold text-[var(--navy)]">Tarifs clairs</h2>
+  <p class="mt-2 max-w-xl">Même moteur de recommandation pour tous. L’abonnement augmente seulement le nombre de recommandations visibles.</p>
+  <div class="mt-8 grid md:grid-cols-2 gap-5 max-w-3xl">
+    <div class="card rv"><h3 class="font-bold text-xl">Gratuit</h3><p class="text-3xl font-extrabold mt-2">0 FCFA</p>
+      <ul class="mt-4 space-y-2 text-sm"><li>Profil, défis et Skill Passport</li><li>50 % des missions pertinentes affichées</li><li>Aucune garantie de mission</li></ul>
+      <a href="register.html" class="btn btn-o mt-5">Commencer</a></div>
+    <div class="card rv border-2 border-[var(--violet)] shadow-xl tilt" style="--d:.15s"><h3 class="font-bold text-xl">PRO</h3><p class="text-3xl font-extrabold mt-2">1 450 FCFA <span class="text-base font-semibold">/ mois</span></p>
+      <ul class="mt-4 space-y-2 text-sm"><li>Tout le plan gratuit</li><li>100 % des missions pertinentes affichées</li><li>Facultatif, sans garantie de sélection</li></ul>
+      <a href="register.html?plan=pro" class="btn btn-p mt-5">Passer en PRO</a></div>
+  </div>
+</section>
+
+<section id="faq" class="max-w-3xl mx-auto px-4 pb-16">
+  <h2 class="text-3xl font-extrabold text-[var(--navy)]">Questions fréquentes</h2>
+  <details class="card mt-5"><summary class="font-bold cursor-pointer">L’IA décide-t-elle de mon profil ?</summary><p class="mt-2 text-sm">Non. L’IA propose, vous confirmez. Les évaluations peuvent être contestées et revues par un humain.</p></details>
+  <details class="card mt-3"><summary class="font-bold cursor-pointer">Le PRO améliore-t-il mon score ?</summary><p class="mt-2 text-sm">Non. Il affiche plus de missions pertinentes, sans changer le score ni garantir un recrutement.</p></details>
+  <details class="card mt-3"><summary class="font-bold cursor-pointer">Mes preuves sont-elles publiques ?</summary><p class="mt-2 text-sm">Seulement celles que vous choisissez de partager avec une entreprise.</p></details>
+</section>
+
+<section data-wipe class="grad text-white">
+  <div class="max-w-6xl mx-auto px-4 py-12 flex flex-wrap items-center justify-between gap-5">
+    <div><h2 class="text-2xl md:text-3xl font-extrabold">Prêt à prouver votre talent ?</h2><p class="mt-1">Créez votre compte et lancez votre premier défi.</p></div>
+    <a href="register.html" class="btn bg-white text-[var(--violet)]">Créer mon compte gratuit</a>
+  </div>
+</section>
+</main>
+<footer class="text-center text-sm py-6 text-[var(--mut)]">© 2026 SkillUp IA · Hackathon ABIFA</footer>
+
+<script>
+// Parallaxe 3D de la scène d'accueil (désactivée si mouvement réduit)
+const scene=document.getElementById('scene'),stack=document.getElementById('stack');
+if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+  stack.style.transform='rotateX(8deg) rotateY(-14deg)';
+  scene.addEventListener('pointermove',e=>{const r=scene.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+    stack.style.transform=`rotateX(${8-y*18}deg) rotateY(${-14+x*26}deg)`;});
+  scene.addEventListener('pointerleave',()=>stack.style.transform='rotateX(8deg) rotateY(-14deg)');
+}
+</script>
+<script src="assets/js/home-anim.js"></script>
+<script>initHomeAnim()</script>
+</body>
+</html>

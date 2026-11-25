@@ -1,0 +1,358 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role { YOUTH COMPANY MODERATOR ADMIN }
+enum UserStatus { ACTIVE SUSPENDED }
+enum Verification { PENDING VERIFIED REJECTED SUSPENDED }
+enum SkillStatus { DECLARED DEMONSTRATED VALIDATED }
+enum SkillSource { AI MANUAL }
+enum ChallengeStatus { DRAFT PUBLISHED ARCHIVED }
+enum ChallengeSource { CATALOG AI }
+enum SubKind { IMAGE VIDEO DOCUMENT LINK }
+enum ReviewStatus { PENDING VALIDATED REVISION }
+enum AppealStatus { NONE OPEN MAINTAINED REVISED }
+enum JobStatus { IN_REVIEW PUBLISHED CLOSED SUSPENDED }
+enum AppStatus { NEW SHORTLISTED ACCEPTED REJECTED }
+enum SubscriptionStatus { PENDING ACTIVE EXPIRED }
+enum PayStatus { PENDING CONFIRMED FAILED EXPIRED }
+enum ReportStatus { OPEN RESOLVED REJECTED }
+enum AdStatus { DRAFT PENDING_REVIEW APPROVED SCHEDULED ACTIVE PAUSED COMPLETED REJECTED ARCHIVED }
+
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  passwordHash  String
+  name          String
+  role          Role
+  status        UserStatus @default(ACTIVE)
+  tokenVersion  Int        @default(0)
+  createdAt     DateTime   @default(now())
+  lastLoginAt   DateTime?
+  youthProfile  YouthProfile?
+  company       Company?
+  skills        UserSkill[]
+  submissions   Submission[]
+  proofs        Proof[]
+  applications  Application[]
+  subscriptions Subscription[]
+  payments      Payment[]
+  notifications Notification[]
+  proposals     AiProposal[]
+  reports       Report[]
+  challenges    Challenge[]
+  @@index([role, status])
+}
+
+model YouthProfile {
+  userId       String  @id
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String  @default("")
+  bio          String  @default("") @db.Text
+  city         String  @default("")
+  languages    String  @default("")
+  availability String  @default("")
+  portfolioUrl String  @default("")
+  shareProofs  Boolean @default(true)
+  shareWorks   Boolean @default(true)
+}
+
+model Company {
+  id           String       @id @default(cuid())
+  ownerUserId  String       @unique
+  owner        User         @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  name         String
+  sector       String       @default("")
+  description  String       @default("") @db.Text
+  city         String       @default("")
+  verification Verification @default(PENDING)
+  jobs         Job[]
+  favorites    Favorite[]
+  campaigns    AdCampaign[]
+}
+
+model Favorite {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId    String
+  @@id([companyId, userId])
+}
+
+model Skill {
+  id         String      @id @default(cuid())
+  name       String      @unique
+  category   String      @default("")
+  userSkills UserSkill[]
+  jobSkills  JobSkill[]
+  challenges Challenge[]
+  proofs     Proof[]
+}
+
+model UserSkill {
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skillId   String
+  skill     Skill       @relation(fields: [skillId], references: [id])
+  level     Int         @default(50)
+  status    SkillStatus @default(DECLARED)
+  source    SkillSource @default(AI)
+  updatedAt DateTime    @updatedAt
+  @@id([userId, skillId])
+}
+
+model AiProposal {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payload   Json
+  createdAt DateTime @default(now())
+  @@index([userId, createdAt])
+}
+
+model Challenge {
+  id          String          @id @default(cuid())
+  title       String
+  skillId     String
+  skill       Skill           @relation(fields: [skillId], references: [id])
+  description String          @db.Text
+  criteria    Json
+  duration    String          @default("")
+  difficulty  String          @default("Débutant")
+  source      ChallengeSource @default(CATALOG)
+  status      ChallengeStatus @default(PUBLISHED)
+  ownerUserId String?
+  owner       User?           @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  createdAt   DateTime        @default(now())
+  submissions Submission[]
+  @@index([skillId, status])
+}
+
+model Submission {
+  id          String       @id @default(cuid())
+  challengeId String
+  challenge   Challenge    @relation(fields: [challengeId], references: [id])
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind        SubKind
+  url         String?
+  fileKey     String?
+  fileName    String?
+  mime        String?
+  size        Int?
+  description String       @default("")
+  status      ReviewStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  reviewedAt  DateTime?
+  evaluation  Evaluation?
+  proof       Proof?
+  @@index([userId, challengeId])
+  @@index([status, createdAt])
+}
+
+model Evaluation {
+  id               String       @id @default(cuid())
+  submissionId     String       @unique
+  submission       Submission   @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  evaluatorId      String
+  result           ReviewStatus
+  comment          String       @default("")
+  criteria         Json?
+  gridVersion      String       @default("v1")
+  appealStatus     AppealStatus @default(NONE)
+  appealReason     String?
+  appealResolution String?
+  createdAt        DateTime     @default(now())
+}
+
+model Proof {
+  id           String     @id @default(cuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submissionId String     @unique
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  skillId      String
+  skill        Skill      @relation(fields: [skillId], references: [id])
+  shared       Boolean    @default(true)
+  validatedAt  DateTime   @default(now())
+}
+
+model Job {
+  id           String        @id @default(cuid())
+  companyId    String
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  title        String
+  description  String        @db.Text
+  deliverables String        @default("")
+  budgetMin    Int           @default(0)
+  budgetMax    Int           @default(0)
+  deadline     String        @default("")
+  mode         String        @default("À distance")
+  location     String        @default("")
+  subtasks     Json          @default("[]")
+  status       JobStatus     @default(IN_REVIEW)
+  createdAt    DateTime      @default(now())
+  skills       JobSkill[]
+  applications Application[]
+  @@index([status, createdAt])
+}
+
+model JobSkill {
+  jobId      String
+  job        Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  skillId    String
+  skill      Skill  @relation(fields: [skillId], references: [id])
+  importance Int    @default(1)
+  @@id([jobId, skillId])
+}
+
+model Application {
+  id        String    @id @default(cuid())
+  jobId     String
+  job       Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   String    @default("")
+  status    AppStatus @default(NEW)
+  createdAt DateTime  @default(now())
+  @@unique([jobId, userId])
+}
+
+model Subscription {
+  id        String             @id @default(cuid())
+  userId    String
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      String             @default("PRO")
+  status    SubscriptionStatus @default(PENDING)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  autoRenew Boolean            @default(false)
+  createdAt DateTime           @default(now())
+  payments  Payment[]
+  @@index([userId, status])
+}
+
+model Payment {
+  id             String       @id @default(cuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  provider       String
+  reference      String       @unique
+  amount         Int
+  currency       String       @default("XOF")
+  status         PayStatus    @default(PENDING)
+  confirmedAt    DateTime?
+  createdAt      DateTime     @default(now())
+}
+
+model WebhookEvent {
+  id        String   @id @default(cuid())
+  provider  String
+  eventId   String
+  reference String
+  createdAt DateTime @default(now())
+  @@unique([provider, eventId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  content   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  @@index([userId, read])
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  reporterId String
+  reporter   User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  targetType String
+  targetId   String
+  reason     String
+  status     ReportStatus @default(OPEN)
+  resolution String?
+  handledBy  String?
+  createdAt  DateTime     @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  resource  String
+  meta      Json?
+  createdAt DateTime @default(now())
+  @@index([createdAt])
+}
+
+model AdPlacement {
+  id        String                @id
+  name      String
+  active    Boolean               @default(true)
+  campaigns AdCampaignPlacement[]
+}
+
+model AdCampaign {
+  id                   String    @id @default(cuid())
+  advertiserName       String
+  advertiserCompanyId  String?
+  advertiser           Company?  @relation(fields: [advertiserCompanyId], references: [id])
+  name                 String
+  title                String
+  text                 String
+  destinationUrl       String
+  mediaRef             String?
+  ctaLabel             String    @default("")
+  status               AdStatus  @default(DRAFT)
+  startsAt             DateTime
+  endsAt               DateTime
+  frequencyCap         Int       @default(3)
+  orderRef             String?
+  paymentConfirmedById String?
+  paymentConfirmedAt   DateTime?
+  reviewNote           String?
+  createdById          String
+  createdAt            DateTime  @default(now())
+  placements           AdCampaignPlacement[]
+  impressions          AdImpression[]
+  clicks               AdClick[]
+  @@index([status])
+}
+
+model AdCampaignPlacement {
+  campaignId  String
+  campaign    AdCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  placementId String
+  placement   AdPlacement @relation(fields: [placementId], references: [id])
+  @@id([campaignId, placementId])
+}
+
+model AdImpression {
+  id          String     @id @default(cuid())
+  campaignId  String
+  campaign    AdCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  placementId String
+  userKey     String
+  createdAt   DateTime   @default(now())
+  @@index([campaignId, userKey, createdAt])
+}
+
+model AdClick {
+  id          String     @id @default(cuid())
+  campaignId  String
+  campaign    AdCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  placementId String
+  userKey     String
+  createdAt   DateTime   @default(now())
+  @@index([campaignId, createdAt])
+}
