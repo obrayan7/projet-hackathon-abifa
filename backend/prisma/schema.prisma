@@ -2,38 +2,128 @@ generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
+
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
-enum Role { YOUTH COMPANY MODERATOR ADMIN }
-enum UserStatus { ACTIVE SUSPENDED }
-enum Verification { PENDING VERIFIED REJECTED SUSPENDED }
-enum SkillStatus { DECLARED DEMONSTRATED VALIDATED }
-enum SkillSource { AI MANUAL }
-enum ChallengeStatus { DRAFT PUBLISHED ARCHIVED }
-enum ChallengeSource { CATALOG AI }
-enum SubKind { IMAGE VIDEO DOCUMENT LINK }
-enum ReviewStatus { PENDING VALIDATED REVISION }
-enum AppealStatus { NONE OPEN MAINTAINED REVISED }
-enum JobStatus { IN_REVIEW PUBLISHED CLOSED SUSPENDED }
-enum AppStatus { NEW SHORTLISTED ACCEPTED REJECTED }
-enum SubscriptionStatus { PENDING ACTIVE EXPIRED }
-enum PayStatus { PENDING CONFIRMED FAILED EXPIRED }
-enum ReportStatus { OPEN RESOLVED REJECTED }
-enum AdStatus { DRAFT PENDING_REVIEW APPROVED SCHEDULED ACTIVE PAUSED COMPLETED REJECTED ARCHIVED }
+enum Role {
+  YOUTH
+  COMPANY
+  MODERATOR
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum Verification {
+  PENDING
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+
+enum SkillStatus {
+  DECLARED
+  DEMONSTRATED
+  VALIDATED
+}
+
+enum SkillSource {
+  AI
+  MANUAL
+}
+
+enum ChallengeStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ChallengeSource {
+  CATALOG
+  AI
+}
+
+enum SubKind {
+  IMAGE
+  VIDEO
+  DOCUMENT
+  LINK
+}
+
+enum ReviewStatus {
+  PENDING
+  VALIDATED
+  REVISION
+}
+
+enum AppealStatus {
+  NONE
+  OPEN
+  MAINTAINED
+  REVISED
+}
+
+enum JobStatus {
+  IN_REVIEW
+  PUBLISHED
+  CLOSED
+  SUSPENDED
+}
+
+enum AppStatus {
+  NEW
+  SHORTLISTED
+  ACCEPTED
+  REJECTED
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+}
+
+enum PayStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+  EXPIRED
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+  REJECTED
+}
+
+enum AdStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  REJECTED
+  ARCHIVED
+}
 
 model User {
-  id            String     @id @default(cuid())
-  email         String     @unique
+  id            String         @id @default(cuid())
+  email         String         @unique
   passwordHash  String
   name          String
   role          Role
-  status        UserStatus @default(ACTIVE)
-  tokenVersion  Int        @default(0)
-  createdAt     DateTime   @default(now())
+  status        UserStatus     @default(ACTIVE)
+  tokenVersion  Int            @default(0)
+  createdAt     DateTime       @default(now())
   lastLoginAt   DateTime?
   youthProfile  YouthProfile?
   company       Company?
@@ -47,7 +137,6 @@ model User {
   proposals     AiProposal[]
   reports       Report[]
   challenges    Challenge[]
-  @@index([role, status])
 }
 
 model YouthProfile {
@@ -81,6 +170,7 @@ model Favorite {
   companyId String
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   userId    String
+
   @@id([companyId, userId])
 }
 
@@ -103,6 +193,7 @@ model UserSkill {
   status    SkillStatus @default(DECLARED)
   source    SkillSource @default(AI)
   updatedAt DateTime    @updatedAt
+
   @@id([userId, skillId])
 }
 
@@ -112,6 +203,7 @@ model AiProposal {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   payload   Json
   createdAt DateTime @default(now())
+
   @@index([userId, createdAt])
 }
 
@@ -130,6 +222,7 @@ model Challenge {
   owner       User?           @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
   createdAt   DateTime        @default(now())
   submissions Submission[]
+
   @@index([skillId, status])
 }
 
@@ -151,6 +244,7 @@ model Submission {
   reviewedAt  DateTime?
   evaluation  Evaluation?
   proof       Proof?
+
   @@index([userId, challengeId])
   @@index([status, createdAt])
 }
@@ -199,6 +293,7 @@ model Job {
   createdAt    DateTime      @default(now())
   skills       JobSkill[]
   applications Application[]
+
   @@index([status, createdAt])
 }
 
@@ -208,6 +303,7 @@ model JobSkill {
   skillId    String
   skill      Skill  @relation(fields: [skillId], references: [id])
   importance Int    @default(1)
+
   @@id([jobId, skillId])
 }
 
@@ -220,6 +316,7 @@ model Application {
   message   String    @default("")
   status    AppStatus @default(NEW)
   createdAt DateTime  @default(now())
+
   @@unique([jobId, userId])
 }
 
@@ -234,6 +331,7 @@ model Subscription {
   autoRenew Boolean            @default(false)
   createdAt DateTime           @default(now())
   payments  Payment[]
+
   @@index([userId, status])
 }
 
@@ -258,6 +356,7 @@ model WebhookEvent {
   eventId   String
   reference String
   createdAt DateTime @default(now())
+
   @@unique([provider, eventId])
 }
 
@@ -269,6 +368,7 @@ model Notification {
   content   String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+
   @@index([userId, read])
 }
 
@@ -292,6 +392,7 @@ model AuditLog {
   resource  String
   meta      Json?
   createdAt DateTime @default(now())
+
   @@index([createdAt])
 }
 
@@ -303,29 +404,30 @@ model AdPlacement {
 }
 
 model AdCampaign {
-  id                   String    @id @default(cuid())
+  id                   String                @id @default(cuid())
   advertiserName       String
   advertiserCompanyId  String?
-  advertiser           Company?  @relation(fields: [advertiserCompanyId], references: [id])
+  advertiser           Company?              @relation(fields: [advertiserCompanyId], references: [id])
   name                 String
   title                String
   text                 String
   destinationUrl       String
   mediaRef             String?
-  ctaLabel             String    @default("")
-  status               AdStatus  @default(DRAFT)
+  ctaLabel             String                @default("")
+  status               AdStatus              @default(DRAFT)
   startsAt             DateTime
   endsAt               DateTime
-  frequencyCap         Int       @default(3)
+  frequencyCap         Int                   @default(3)
   orderRef             String?
   paymentConfirmedById String?
   paymentConfirmedAt   DateTime?
   reviewNote           String?
   createdById          String
-  createdAt            DateTime  @default(now())
+  createdAt            DateTime              @default(now())
   placements           AdCampaignPlacement[]
   impressions          AdImpression[]
   clicks               AdClick[]
+
   @@index([status])
 }
 
@@ -334,6 +436,7 @@ model AdCampaignPlacement {
   campaign    AdCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   placementId String
   placement   AdPlacement @relation(fields: [placementId], references: [id])
+
   @@id([campaignId, placementId])
 }
 
@@ -344,6 +447,7 @@ model AdImpression {
   placementId String
   userKey     String
   createdAt   DateTime   @default(now())
+
   @@index([campaignId, userKey, createdAt])
 }
 
@@ -354,5 +458,6 @@ model AdClick {
   placementId String
   userKey     String
   createdAt   DateTime   @default(now())
+
   @@index([campaignId, createdAt])
 }
